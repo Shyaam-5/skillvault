@@ -4,7 +4,7 @@ import {
   Search, GraduationCap, Compass, BookOpen, PlayCircle,
   Settings, UserRound, Star, Clock3, ChevronRight, ChevronLeft, CheckCircle2,
   LockKeyhole, ArrowRight, Sparkles, ChartNoAxesCombined, Plus, Video, Users,
-  IndianRupee, CircleHelp, Menu, X, Bookmark, BadgeCheck, UploadCloud, Trash2,
+  IndianRupee, CircleHelp, X, Bookmark, BadgeCheck, UploadCloud, Trash2,
   ListChecks
 } from "lucide-react";
 import "./styles.css";
@@ -32,7 +32,6 @@ function App() {
   const [selectedId, setSelectedId] = useState("python");
   const [lessonIndex, setLessonIndex] = useState(0);
   const [notice, setNotice] = useState("");
-  const [mobileMenu, setMobileMenu] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftPrice, setDraftPrice] = useState("999");
   const [draftCategory, setDraftCategory] = useState("Development");
@@ -54,7 +53,7 @@ function App() {
   const filtered = useMemo(() => courses.filter(c => (category === "All" || c.category === category) && `${c.title} ${c.instructor} ${c.category}`.toLowerCase().includes(search.toLowerCase())), [courses, category, search]);
   const myCourses = courses.filter(c => purchases.includes(c.id));
   const progressPercent = (c) => Math.round(((progress[c.id] || []).length / (c.lessons?.length || 1)) * 100);
-  const go = (next) => { setPage(next); setMobileMenu(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const go = (next) => { setPage(next); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const selectCourse = (id, destination = "Course details") => { setSelectedId(id); setLessonIndex(0); go(destination); };
   const buyCourse = () => {
     if (!purchases.includes(course.id)) setPurchases(prev => [...prev, course.id]);
@@ -96,7 +95,7 @@ function App() {
     { label: "Admin", icon: Settings }
   ];
   const nav = (items = navItems) => items.map(({ label, icon: Icon }) => (
-    <button key={label} className={`nav-link ${page === label ? "active" : ""}`} onClick={() => go(label)}><Icon size={17}/><span>{label}</span>{label === "My learning" && purchases.length > 0 && <span className="nav-count">{purchases.length}</span>}</button>
+    <button key={label} className={`nav-link ${page === label ? "active" : ""}`} aria-current={page === label ? "page" : undefined} onClick={() => go(label)}><Icon size={17}/><span>{label}</span>{label === "My learning" && purchases.length > 0 && <span className="nav-count">{purchases.length}</span>}</button>
   ));
 
   return <div className="app-shell">
@@ -106,11 +105,10 @@ function App() {
         <span className="brand-copy"><strong>SkillVault</strong><small>LEARN SOMETHING VALUABLE.</small></span>
       </button>
       <div className="top-search"><Search size={18}/><input value={search} onChange={e => { setSearch(e.target.value); if (page !== "Explore") go("Explore"); }} placeholder="Search for anything" aria-label="Search courses"/><kbd>⌘ K</kbd></div>
-      <nav className="desktop-nav">{nav()}</nav>
-      <button className="icon-button mobile-menu-button" onClick={() => setMobileMenu(v => !v)} aria-label="Toggle navigation">{mobileMenu ? <X size={21}/> : <Menu size={21}/>}</button>
-      <button className="avatar-button" title="Demo profile" onClick={() => go("My learning")}><UserRound size={18}/></button>
-      {mobileMenu && <div className="mobile-nav">{nav()}</div>}
+      <nav className="desktop-nav" aria-label="Primary">{nav()}</nav>
+      <button className="avatar-button" title="Demo profile" aria-label="My learning" onClick={() => go("My learning")}><UserRound size={18}/></button>
     </header>
+    <nav className="tabbar" aria-label="Primary">{nav()}</nav>
 
     {notice && <div className="toast" role="status"><CheckCircle2 size={18}/><span>{notice}</span><button onClick={() => setNotice("")} aria-label="Dismiss"><X size={16}/></button></div>}
 
@@ -129,7 +127,7 @@ function App() {
 
         <section className="section" id="course-catalogue">
           <div className="section-heading"><div><div className="eyebrow muted">THE SKILLVAULT CATALOGUE</div><h2>Find your next skill</h2><p>Explore expert-led courses built for real-world progress.</p></div><div className="catalogue-count">{filtered.length} courses <ChevronRight size={16}/></div></div>
-          <div className="category-pills">{categories.map(cat => <button key={cat} className={`category-pill ${category === cat ? "selected" : ""}`} onClick={() => setCategory(cat)}>{cat}</button>)}</div>
+          <div className="category-pills">{categories.map(cat => <button key={cat} className={`category-pill ${category === cat ? "selected" : ""}`} aria-pressed={category === cat} onClick={() => setCategory(cat)}>{cat}</button>)}</div>
           {filtered.length ? <div className="course-grid">{filtered.map(c => <CourseCard key={c.id} course={c} owned={purchases.includes(c.id)} saved={saved.includes(c.id)} progress={progressPercent(c)} onOpen={() => selectCourse(c.id)} onSave={() => toggleSaved(c.id)} onLearn={() => selectCourse(c.id, "Player")}/>)}</div> : <EmptyState icon={Search} title="No courses found" text="Try another search or category." action="Clear filters" onAction={() => { setSearch(""); setCategory("All"); }}/>}
         </section>
         <section className="value-strip"><div className="value-icon"><LockKeyhole size={21}/></div><div><strong>One payment. Your learning library.</strong><p>In the full product, every purchase will unlock a course in your account, with progress saved securely.</p></div><button className="button button-outline" onClick={() => go("My learning")}>My learning <ArrowRight size={16}/></button></section>
